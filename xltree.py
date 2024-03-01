@@ -59,7 +59,7 @@ class XLTreePlugin(plugin.PyangPlugin):
         ws.sheet_view.showGridLines = False
         emit_notif(ctx, sorted_modules, ws)
 
-        ws = wb.create_sheet('enum-like')
+        ws = wb.create_sheet('enum-like-type')
         ws.sheet_view.showGridLines = False
         emit_enum(ctx, sorted_modules, ws)
 
@@ -703,6 +703,17 @@ def create_datarow(depth, stmt, mode):
         if typestmt.i_typedef is None and typestmt.i_type_spec is None:
             raise RuntimeError('unresolved type {} at {}'.format(typestmt.arg, path_for_debug(stmt)))
         typename = statements.get_qualified_type(stmt)
+
+        if typename == 'enumeration':
+            typename = '{} : {{{}}}'.format(typename, ','.join([elem.arg for elem in typestmt.substmts]))
+        elif typename == 'leafref':
+            elem = typestmt.search_one('path')
+            if elem is not None:
+                typename = '{} : {}'.format(typename, elem.arg)
+        elif typename == 'identityref':
+            elem = typestmt.search_one('base')
+            if elem is not None:
+                typename = '{} {{{}}}'.format(typename, elem.arg)
 
     if stmtname in ('leaf', 'choice', 'anyxml', 'anydata'):
         mandatory = 'M' if is_mandatory_node(stmt) else 'O'

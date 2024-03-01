@@ -37,23 +37,23 @@ How to use
 > python -m venv --prompt xltree venv
 > venv\Scripts\activate
 (xltree) > python --version
-Python 3.12.1
+Python 3.12.2
 (xltree) > python -m pip install --upgrade pip
 ```
 
 ### 3) install pyang and openpyxl
 
 ```
-(xltree) > python -m pip install pyang setuptools openpyxl
+(xltree) > pip install pyang setuptools openpyxl
 (xltree) > pip list
 Package    Version
 ---------- -------
 et-xmlfile 1.1.0
-lxml       5.0.0
+lxml       5.1.0
 openpyxl   3.1.2
-pip        23.3.2
+pip        24.0
 pyang      2.6.0
-setuptools 69.0.3
+setuptools 69.1.1
 ```
 
 ### 4) run pyang with xltree output
