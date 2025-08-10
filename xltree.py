@@ -432,11 +432,12 @@ def print_desc(ws, nrow, ncol, data):
 
 
 def print_dataheader(ws, max_depth):
-    print_header(ws, 'name', max_depth, 'keyword', 'type', 'M/O', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
+    # M/C/O/c : Mandatory, Mandatory with when, Optional, Optional with when
+    print_header(ws, 'name', max_depth, 'keyword', 'type', 'M/C/O/c', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
 
 
 def print_datanone(ws, max_depth):
-    print_nodata(ws, max_depth, 'keyword', 'type', 'M/O', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
+    print_nodata(ws, max_depth, 'keyword', 'type', 'M/C/O/c', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
 
 
 def print_datarows(ws, rows, max_depth):
@@ -579,6 +580,30 @@ def is_mandatory_node(stmt):
     return False
 
 
+def has_when(stmt):
+    '''Returns true if the statement or the source augment statement has when substatement.'''
+    if stmt.search_one('when'):
+        return True
+    elif hasattr(stmt, 'i_augment') and stmt.i_augment.search_one('when'):
+        return True
+    return False
+
+
+def get_mandatory_value(stmt):
+    '''Returns value for the mandatory field.'''
+    mandatory = is_mandatory_node(stmt)
+    if has_when(stmt):
+        if mandatory:
+            return 'C'
+        else:
+            return 'c'
+    else:
+        if mandatory:
+            return 'M'
+        else:
+            return 'O'
+
+
 def path_for_debug(stmt):
     if stmt.keyword in ('module', 'submodule'):
         return stmt.i_modulename
@@ -716,10 +741,12 @@ def create_datarow(depth, stmt, mode):
                 typename = '{} {{{}}}'.format(typename, elem.arg)
 
     if stmtname in ('leaf', 'choice', 'anyxml', 'anydata'):
-        mandatory = 'M' if is_mandatory_node(stmt) else 'O'
+        mandatory = get_mandatory_value(stmt)
     elif stmtname in ('list', 'leaf-list', 'container'):
-        mandatory = 'M' if is_mandatory_node(stmt) else '-'
+        mandatory = get_mandatory_value(stmt)
+        mandatory = '-' if mandatory == 'O' else mandatory
     else:
+        # case, notification, rpc, input, output, etc.,
         mandatory = '-'
 
     if mode == 'input':
