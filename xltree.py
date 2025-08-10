@@ -83,7 +83,7 @@ class XLTreePlugin(plugin.PyangPlugin):
 MODULE_KEYS = ('name', 'stmtname', 'yang_version','namespace', 'prefix', 'revision', 'belongs_to', 'including', 'imports', 'imported_by', 'non_primary_imps', 'includes', 'included_by')
 ModuleRow = collections.namedtuple('ModuleRow', MODULE_KEYS)
 
-DATA_KEYS = ('depth', 'name', 'stmtname', 'typename', 'mandatory', 'config', 'orig_modname', 'modname', 'path_simple', 'path_keys', 'path_full', 'desc')
+DATA_KEYS = ('depth', 'name', 'stmtname', 'typename', 'primitive', 'mandatory', 'config', 'orig_modname', 'modname', 'path_simple', 'path_keys', 'path_full', 'desc')
 DataRow = collections.namedtuple('DataRow', DATA_KEYS)
 
 ID_KEYS = ('depth', 'name', 'modname', 'fullname', 'desc')
@@ -433,11 +433,11 @@ def print_desc(ws, nrow, ncol, data):
 
 def print_dataheader(ws, max_depth):
     # M/C/O/c : Mandatory, Mandatory with when, Optional, Optional with when
-    print_header(ws, 'name', max_depth, 'keyword', 'type', 'M/C/O/c', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
+    print_header(ws, 'name', max_depth, 'keyword', 'type', 'primitive', 'M/C/O/c', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
 
 
 def print_datanone(ws, max_depth):
-    print_nodata(ws, max_depth, 'keyword', 'type', 'M/C/O/c', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
+    print_nodata(ws, max_depth, 'keyword', 'type', 'primitive', 'M/C/O/c', 'mode', 'orig-module', 'module', 'path(simple)', 'path(keys)', 'path(full)', 'description')
 
 
 def print_datarows(ws, rows, max_depth):
@@ -451,6 +451,9 @@ def print_datarows(ws, rows, max_depth):
         ncol += 1
 
         print_text(ws, nrow, ncol, row.typename)
+        ncol += 1
+
+        print_text(ws, nrow, ncol, row.primitive)
         ncol += 1
 
         print_text(ws, nrow, ncol, row.mandatory)
@@ -721,6 +724,7 @@ def create_datarow(depth, stmt, mode):
 
     typename = '-'
     # type_desc = ''
+    primitive = '-'
 
     typestmt = stmt.search_one('type')
     if typestmt is not None:
@@ -739,6 +743,8 @@ def create_datarow(depth, stmt, mode):
             elem = typestmt.search_one('base')
             if elem is not None:
                 typename = '{} {{{}}}'.format(typename, elem.arg)
+        primitive = statements.get_primitive_type(stmt)
+
 
     if stmtname in ('leaf', 'choice', 'anyxml', 'anydata'):
         mandatory = get_mandatory_value(stmt)
@@ -825,6 +831,7 @@ def create_datarow(depth, stmt, mode):
         name = name,
         stmtname = stmtname,
         typename = typename,
+        primitive = primitive,
         mandatory =  mandatory,
         config = config,
         orig_modname = orig_modname,
